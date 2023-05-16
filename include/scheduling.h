@@ -42,11 +42,12 @@ typedef std::priority_queue<Process, std::vector<Process>, ArrivalComparator>
 typedef std::priority_queue<Process, std::vector<Process>, DurationComparator>
     pqueue_duration;
 
-pqueue_arrival read_workload(std::string filename);
+void read_workloads();
 void show_workload(pqueue_arrival workload);
 void show_processes(std::list<Process> processes);
-int draw_schedule(pqueue_arrival workload);
+int draw_schedule();
 std::string* metricsToText(int alg, std::list<Process> processes);
+pqueue_arrival custom_workload(int arrival[], int duration[]);
 
 std::list<Process> fifo(pqueue_arrival workload);
 std::list<Process> sjf(pqueue_arrival workload);

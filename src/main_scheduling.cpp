@@ -19,10 +19,10 @@ int main(int argc, char* argv[]) {
   //std::string algorithm = argv[1];
   std::string workload_file = argv[1];
 
-  pqueue_arrival workload = read_workload(workload_file);
+  read_workloads();
 
 
-  draw_schedule(workload);
+  draw_schedule();
   /* Call master game method here*/
 
 

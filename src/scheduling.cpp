@@ -21,55 +21,85 @@ int sliceSize = 5;
 int sliceNum = 0;
 sf::Color colors[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan};
 
-pqueue_arrival read_workload(std::string filename) {
-  pqueue_arrival workload;
+std::string filenames[3] = {"workload_01.txt", "workload_02.txt", "workload_03.txt"};
+//3 preloaded workloads, one custom slot
+pqueue_arrival workloads[4];
+pqueue_arrival dummy;
+
+//altered to load all workload files into the workloads array
+void read_workloads() {
+
+  for(int i = 0; i < 3; i++){
+
+    pqueue_arrival workload;
+
+    std::fstream input(filenames[i], std::ios::in);
+
+    std::string currLine;
+    std::string arrival;
+    std::string duration;
+
+    int numProcess = 0;
+
+    if (input.is_open()){
+
+      //std::cout << "open";
+
+      while (!input.eof()){
+
+        arrival = "";
+        duration = "";
 
 
-  std::fstream input(filename, std::ios::in);
+        input >> arrival >> duration;
 
+        //arrival.replace(arrival.find("\n"));
+        //arrival.erase(remove_if(arrival.begin(), arrival.end(), [](char c) { return !isalpha(c); } ), arrival.end());
+        //duration.erase(remove_if(duration.begin(), duration.end(), [](char c) { return !isalpha(c); } ), duration.end());
+        if(arrival.compare("") != 0 && duration.compare("") != 0){
 
-  std::string currLine;
-  std::string arrival;
-  std::string duration;
+          Process newprocess;
+          newprocess.arrival = stoi(arrival);
+          newprocess.duration = stoi(duration);
 
-  int numProcess = 0;
+          newprocess.completion = -1;
+          newprocess.first_run = -1;
+          newprocess.id = numProcess;
 
-  if (input.is_open()){
+          workload.push(newprocess);
+          numProcess++;
+        }
+        //workload.push(pair<Process, vector<Process>>(Process, set1));
+        
 
-    //std::cout << "open";
-
-    while (!input.eof()){
-
-      arrival = "";
-      duration = "";
-
-
-      input >> arrival >> duration;
-
-      //arrival.replace(arrival.find("\n"));
-      //arrival.erase(remove_if(arrival.begin(), arrival.end(), [](char c) { return !isalpha(c); } ), arrival.end());
-      //duration.erase(remove_if(duration.begin(), duration.end(), [](char c) { return !isalpha(c); } ), duration.end());
-      if(arrival.compare("") != 0 && duration.compare("") != 0){
-
-        Process newprocess;
-        newprocess.arrival = stoi(arrival);
-        newprocess.duration = stoi(duration);
-
-        newprocess.completion = -1;
-        newprocess.first_run = -1;
-        newprocess.id = numProcess;
-
-        workload.push(newprocess);
-        numProcess++;
       }
-      //workload.push(pair<Process, vector<Process>>(Process, set1));
-      
 
     }
 
+    workloads[i] = workload;
+    input.close();
+
   }
 
-  input.close();
+}
+
+pqueue_arrival custom_workload(int arrival[], int duration[], int size){
+
+  pqueue_arrival workload;
+
+  for(int i = 0; i < size; i++){
+
+    Process newprocess;
+    newprocess.arrival = arrival[i];
+    newprocess.duration = duration[i];
+
+    newprocess.completion = -1;
+    newprocess.first_run = -1;
+    newprocess.id = i;
+
+    workload.push(newprocess);
+
+  }
 
   return workload;
 }
@@ -137,7 +167,9 @@ stretch goal:
 */
 
 //call in main, pass in workload and workload size
-int draw_schedule(pqueue_arrival workload){
+int draw_schedule(){
+
+  workloads[3] = dummy;
 
   // Request a 24-bits depth buffer when creating the window
   sf::ContextSettings contextSettings;
@@ -156,8 +188,29 @@ int draw_schedule(pqueue_arrival workload){
 
   bool atHome = true;
   bool atSchedule = false;
+  bool atCreate = false;
+  bool arrEdit = false;
+  bool durEdit = false;
   //0 = fifo, 1 = sjf, 2 = rr
   int algType = -1;
+  int workloadSize = 0;
+  int arrival[15];
+  int duration[15];
+  pqueue_arrival customWorkload;
+  pqueue_arrival currWorkload = workloads[0];
+
+  for(int i = 0; i < 15; i++){
+
+    arrival[i] = -1;
+    duration[i] = -1;
+  }
+
+  std::string newarrival = "";
+  std::string newduration = "";
+  //char* test = "";
+  sf::Text process;
+  sf::Text arr;
+  sf::Text dur;
 
   sf::Font font;
   font.loadFromFile("res/arial.ttf");
@@ -167,7 +220,16 @@ int draw_schedule(pqueue_arrival workload){
   home.setFont(font);
   home.setCharacterSize(20);
   home.setFillColor(sf::Color::White);
-  home.setString("Select an algorithm to run on your workload input.\n\nType 0 for FIFO, 1 for SJF, and 2 for RR. Then, press enter.");
+  home.setString("");
+
+  for(int i = 0; i < 4; i++){
+
+    if(!workloads[i].empty())
+      home.setString(home.getString() + "\nPress " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1));
+  
+  }
+
+  home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Press 'Enter' to run the algorithm.");
 
 
   //change to "axisnums"
@@ -189,6 +251,20 @@ int draw_schedule(pqueue_arrival workload){
   stats.setCharacterSize(13);
   stats.setFillColor(sf::Color::White);
   stats.setPosition(sf::Vector2f(40.f, 325.f));
+
+  sf::Text workchoice;
+  workchoice.setFont(font);
+  workchoice.setCharacterSize(14);
+  workchoice.setFillColor(sf::Color::Yellow);
+  workchoice.setPosition(sf::Vector2f(50.f, 300.f));
+  workchoice.setString("");
+
+  sf::Text algchoice;
+  algchoice.setFont(font);
+  algchoice.setCharacterSize(14);
+  algchoice.setFillColor(sf::Color::Yellow);
+  algchoice.setPosition(sf::Vector2f(50.f, 350.f));
+  algchoice.setString("");
 
 
   sf::Vertex line[] =
@@ -220,28 +296,91 @@ int draw_schedule(pqueue_arrival workload){
           if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
               window.close();
 
-          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num0))
+          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num1) && atHome){
+              currWorkload = workloads[0];
+              workchoice.setString("Workload 1 has been chosen");
+          }
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num2) && atHome){
+              currWorkload = workloads[1];
+              workchoice.setString("Workload 2 has been chosen");
+          }
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num3) && atHome){
+              currWorkload = workloads[2];
+              workchoice.setString("Workload 3 has been chosen");
+          }
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num4) && atHome && !workloads[3].empty()){
+              currWorkload = workloads[3];
+              workchoice.setString("Workload 4 has been chosen");
+          }
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::F) && atHome){
               algType = 0;
+              algchoice.setString("FIFO chosen");
+          }
 
           //else if?
-          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num1))
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::S) && atHome){
               algType = 1;
+              algchoice.setString("SJF chosen");
+          }
 
-          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num2))
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::R) && atHome){
               algType = 2;
+              algchoice.setString("RR chosen");
+          }
 
-          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::BackSpace)){
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::BackSpace) && !atHome){
               sliceNum = 0;
               atHome = true;
               atSchedule = false;
+              atCreate = false;
+              home.setString("");
+              workchoice.setString("");
+              algchoice.setString("");
+
+              for(int i = 0; i < 4; i++){
+
+                if(!workloads[i].empty())
+                  home.setString(home.getString() + "\nPress " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1));
+              
+              }
+
+              home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Then, press 'Enter'.");
           }
 
-          if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter) && algType > -1){
+          //change so that both algorithm AND "workload" is chosen before running algorithm
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter) && algType > -1){
               atSchedule = true;
               atHome = false;
           }
 
           // else print "please choose an algorithm"
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::C) && atHome){
+
+            atCreate = true;
+            atHome = false;
+            text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
+          }
+
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Tab) && atCreate && !arrEdit && !durEdit){
+
+            text.setString("Type an arrival time, then press enter. Next, type a duration, and press enter again.\nPress Tab again to add another process to the workload.\nTo create the workload, press D. Use Backspace to exit.");
+            arrEdit = true;
+
+            for(int i = 0; i < 15; i++){
+
+              arrival[i] = -1;
+              duration[i] = -1;
+            }
+
+            workloadSize = 0;
+
+          }
+
 
           // Resize event: adjust the viewport
           if (event.type == sf::Event::Resized)
@@ -250,40 +389,216 @@ int draw_schedule(pqueue_arrival workload){
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+      //add option listing possible workloads, map inputs to pick them
       if(atHome){
 
-        home.setPosition(sf::Vector2f(150.f, 200.f));
+        //draw all workload options from the workloads array
+
+        home.setPosition(sf::Vector2f(50.f, 25.f));
 
         window.draw(home);
+        window.draw(workchoice);
+        window.draw(algchoice);
+      }
+
+      else if(atCreate){
+
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if(arrEdit){
+          //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
+          process.setFont(font);
+          process.setCharacterSize(16);
+          process.setFillColor(sf::Color::White);
+          process.setPosition(sf::Vector2f(50.f, 100.f));
+          process.move(sf::Vector2f(0.f, workloadSize*20));
+          process.setString("Process " + std::to_string(workloadSize) + "   Arrival: ");
+
+          newarrival = "";
+          newduration = "";
+          arr.setFont(font);
+          arr.setCharacterSize(16);
+          arr.setPosition(sf::Vector2f(130.f, 100.f));
+          //arr.move(sf::Vector2f(0.f, workloadSize*20));
+          arr.setString(newarrival);
+          dur.setFont(font);
+          dur.setCharacterSize(16);
+          dur.setPosition(sf::Vector2f(200.f, 100.f));
+          //dur.move(sf::Vector2f(0.f, workloadSize*20));
+          dur.setString(newduration);
+        }
+
+        //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
+
+        window.draw(text);
+        //window.draw(process);
+        //window.draw(arr);
+
+        while((arrEdit || durEdit) && (arrival[workloadSize] < 0 || duration[workloadSize] < 0) && window.isOpen()){
+
+          //window.draw(process);
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+          if(window.pollEvent(event)){
+
+            if (event.type == sf::Event::Closed)
+              window.close();
+
+            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)){
+              arrEdit = false;
+              durEdit = false;
+            }
+
+            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Tab)){
+
+              //process.move(sf::Vector2f(0.f, workloadSize*20));
+              //process.setString(process.getString() + "   Arrival: " + std::to_string(atoi(newarrival.c_str())) + " Duration: " + std::to_string(atoi(newduration.c_str())) + "\nProcess " + std::to_string(workloadSize));
+              process.setString(process.getString() + "\nProcess " + std::to_string(workloadSize) + "   Arrival: ");
+              newarrival = "";
+              arr.setString(newarrival);
+              arr.setPosition(sf::Vector2f(130.f, 100.f + 18*workloadSize));
+              newduration = "";
+              dur.setString(newduration);
+              dur.setPosition(sf::Vector2f(200.f, 100.f + 18*workloadSize));
+            }
+
+            //limit to numeric
+            else if(event.type == sf::Event::TextEntered && event.text.unicode < 58 && event.text.unicode > 47){
+
+              //edit process string instead
+              if(arrEdit){
+                newarrival += static_cast<char>(event.text.unicode);
+                arr.setString(newarrival);
+                //process.setString("Process " + std::to_string(workloadSize) + "   Arrival: " + std::to_string(atoi(newarrival.c_str())));
+                process.setString(process.getString() + static_cast<char>(event.text.unicode));
+
+              }
+
+              else if(durEdit){
+
+                newduration += static_cast<char>(event.text.unicode);
+                dur.setString(newduration);
+                process.setString(process.getString() + static_cast<char>(event.text.unicode));
+              }
+
+            }
+
+            
+            /*
+            //backspacing
+            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)){
+
+              
+              // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+              // sf::Text process;
+              // process.setFont(font);
+              // process.setCharacterSize(16);
+              // process.setPosition(sf::Vector2f(50.f, 100.f));
+
+              // //make one long string with \n? should just make function to make the string
+              // for(int i = 0; i < workloadSize; i++){
+
+              //   process.move(sf::Vector2f(0.f, i*20));
+              //   process.setString("Process " + std::to_string(i) + "  " + std::to_string(arrival[i]) + "  " + std::to_string(duration[i]));
+              //   window.draw(process);
+              // }
+
+              
+
+              if(arrEdit && strlen(newarrival) > 0){
+                newarrival[strlen(newarrival) - 1] = '\0';
+                arr.setString(newarrival);
+                window.draw(arr);
+              }
+
+              else if(durEdit && strlen(newduration) > 0){
+                newduration[strlen(newduration) - 1] = '\0';
+                dur.setString(newduration);
+                window.draw(dur);
+              }
+
+            }
+
+            */
+
+            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Enter) && newarrival.compare("") != 0){
+
+              if(arrEdit){
+                arrival[workloadSize] = atoi(newarrival.c_str());
+                arrEdit = false;
+                durEdit = true;
+                process.setString(process.getString() + "   Duration: ");
+              }
+
+              else if(durEdit){
+
+                duration[workloadSize] = atoi(newduration.c_str());
+                newduration += "  DONE";
+                process.setString(process.getString() + "  DONE");
+                dur.setString(newduration);
+                durEdit = false;
+                arrEdit = true;
+                workloadSize++;
+              }
+
+            }
+
+            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::D)){
+
+              text.setString("New custom process added. Press Backspace to return to the home screen.");
+              workloads[3] = custom_workload(arrival, duration, workloadSize);
+              //workload = workloads[3];
+              arrEdit = false;
+              durEdit = false;
+            }
+
+
+          }
+
+          window.draw(text);
+          window.draw(process);
+          //window.draw(arr);
+          //window.draw(dur);
+          window.display();
+
+        }
+
+        //window.display();
 
       }
 
       else if(atSchedule){
 
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
         //switch statement
         if(algType == 0){
 
-          std::string* metricStrings = metricsToText(0, fifo(workload));
+          std::string* metricStrings = metricsToText(0, fifo(currWorkload));
   
           metrics.setString(metricStrings[0]);
           stats.setString(metricStrings[1]);
 
         }
         else if(algType == 1){
-          std::string* metricStrings = metricsToText(0, sjf(workload));
+          std::string* metricStrings = metricsToText(0, sjf(currWorkload));
   
           metrics.setString(metricStrings[0]);
           stats.setString(metricStrings[1]);
 
         }
         else if(algType == 2){
-          std::string* metricStrings = metricsToText(0, rr(workload));
+          std::string* metricStrings = metricsToText(0, rr(currWorkload));
   
           metrics.setString(metricStrings[0]);
           stats.setString(metricStrings[1]);
         }
 
         //setting and printing axis labels
+        text.setCharacterSize(12);
         text.setPosition(sf::Vector2f(32.f, 283.f));
         text.setString("0");
         window.draw(text);
@@ -294,6 +609,11 @@ int draw_schedule(pqueue_arrival workload){
           text.move(sf::Vector2f(50.f, 0.f));
           window.draw(text);
         }
+
+        text.setCharacterSize(14);
+        text.setString("Press 'Backspace' to return to the home screen.");
+        text.setPosition(sf::Vector2f(20.f, 20.f));
+        window.draw(text);
 
         window.draw(metrics);
         window.draw(stats);
@@ -312,7 +632,7 @@ int draw_schedule(pqueue_arrival workload){
         label.setPosition(sf::Vector2f(30.f, 80.f));
 
         //drawing legend
-        for(int i = 0; i < workload.size(); i++){
+        for(int i = 0; i < currWorkload.size(); i++){
 
           label.setString("P" + std::to_string(i));
           label.move(sf::Vector2f(40.f, 0.f));
