@@ -10,21 +10,11 @@
 
 int main(int argc, char* argv[]) {
 
-  //now, you only need to add the workload file
-  /*
-  if (argc != 2) {
-    std::cout << "usage: [fifo|sjf|stcf|rr] workload_file" << std::endl;
-    exit(1);
-  }
-  */
-
-  //std::string algorithm = argv[1];
-  //std::string workload_file = argv[1];
-
+  //load all workloads included in the project folder as .txt files
   read_workloads();
 
-
+  //start game loop
   draw_schedule();
 
-   return 0;
+  return 0;
 }

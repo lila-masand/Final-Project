@@ -1,3 +1,20 @@
+/* Lila Masand, CS377 Operating Systems Final Project, 5/17/23
+
+Hello! This is my Scheduling Visualizer program, based on Project 3 from our class.
+The full readme is included in the repository, but this program essentially
+runs  scheduling algorithms on different workloads - 3 workloads are provided,
+but the user can create their own as well. After it runs the algorithm, the result is
+drawn on a graph that shows the time slices from each of the processes that ran.
+
+This program requires no arguments (unlike the original) and the workload text files
+can of course be easily altered to preload different workloads into the program.
+
+SFML with OpenGL is used as the graphics library, and all dependencies and configuration files are included 
+in the repository.
+
+
+*/
+
 #include <scheduling.h>
 #include <fstream>
 #include <iostream>
@@ -12,21 +29,28 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
-//using namespace std;
-
-//global or new array for each method with specific number of processes?
-//sf::RectangleShape slices[100];
+//Max of 150 slices since our maximum duration is 150, and RR uses
+//1-time unit slices
 sf::RectangleShape slices[200];
-int sliceSize = 5;
+
+//Algorithms fill in the array and set this variable when they run
 int sliceNum = 0;
-sf::Color colors[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan};
+
+//Used to scale time slice duration to Rectangle width
+int sliceSize = 5;
+
+//Colors to use when assigning each proccess a color. Unfortunately, SFML does not have
+//many built-in colors, so we can only have 6 unique processes per workload
+sf::Color colors[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan, sf::Color(242, 170, 24, 1)};
 
 std::string filenames[3] = {"workload_01.txt", "workload_02.txt", "workload_03.txt"};
+
 //3 preloaded workloads, one custom slot
 pqueue_arrival workloads[4];
 pqueue_arrival dummy;
 
-//altered to load all workload files into the workloads array
+//Altered to load all workload files into the workloads array, rather than just the file
+//received as input
 void read_workloads() {
 
   for(int i = 0; i < 3; i++){
@@ -43,8 +67,6 @@ void read_workloads() {
 
     if (input.is_open()){
 
-      //std::cout << "open";
-
       while (!input.eof()){
 
         arrival = "";
@@ -53,9 +75,6 @@ void read_workloads() {
 
         input >> arrival >> duration;
 
-        //arrival.replace(arrival.find("\n"));
-        //arrival.erase(remove_if(arrival.begin(), arrival.end(), [](char c) { return !isalpha(c); } ), arrival.end());
-        //duration.erase(remove_if(duration.begin(), duration.end(), [](char c) { return !isalpha(c); } ), duration.end());
         if(arrival.compare("") != 0 && duration.compare("") != 0){
 
           Process newprocess;
@@ -68,21 +87,17 @@ void read_workloads() {
 
           workload.push(newprocess);
           numProcess++;
-        }
-        //workload.push(pair<Process, vector<Process>>(Process, set1));
-        
-
+        }        
       }
-
     }
 
     workloads[i] = workload;
     input.close();
-
   }
-
 }
 
+//Create the custom workload using the arrival and duration arrays that we
+//make in draw_schedule.
 pqueue_arrival custom_workload(int arrival[], int duration[], int size){
 
   pqueue_arrival workload;
@@ -98,12 +113,13 @@ pqueue_arrival custom_workload(int arrival[], int duration[], int size){
     newprocess.id = i;
 
     workload.push(newprocess);
-
   }
 
   return workload;
 }
 
+//Neither this function nor the next is used, but they are potentially useful if the program
+//structure were to be changed, so I kept them just in case
 void show_workload(pqueue_arrival workload) {
   pqueue_arrival xs = workload;
   std::cout << "Workload:" << std::endl;
@@ -127,16 +143,14 @@ void show_processes(std::list<Process> processes) {
   }
 }
 
-
+//Used show_metrics and show_processes as models to make a function that returns
+//their output as strings that we can draw later
 std::string* metricsToText(int alg, std::list<Process> processes){
 
   static std::string output[2];
   std::string metrics = "";
   std::string stats = "";
 
-  //std::list<Process> processes = fifo(workload);
-
-  //make into a function that returns the two strings you need
   float avg_t = avg_turnaround(processes);
   float avg_r = avg_response(processes);
 
@@ -144,8 +158,8 @@ std::string* metricsToText(int alg, std::list<Process> processes){
 
   //fetching process stats
   while (!processes.empty()) {
+
     Process p = processes.front();
-    
     stats += "Process " + std::to_string(p.id) + ": arrival = " + std::to_string(p.arrival) + ", duration = " + std::to_string(p.duration) + ", first run = " + std::to_string(p.first_run) + ", completion = " + std::to_string(p.completion) + "\n";
     processes.pop_front();
   }
@@ -155,84 +169,84 @@ std::string* metricsToText(int alg, std::list<Process> processes){
   return output;
 }
 
-/* 
-plan to draw each resulting schedule:
-  - create an array and add a Rectangle for every time slice (every time a slice finishes)
-  - duration of slice = rectangle width, start time = x coordinate, etc.
-  - slices labelled by process (A, B, C, etc.)
-
-stretch goal:
-  - interactive window with fields to put in process duration and arrival times
-  - buttons that allow the user to choose an algorithm and run the corresponding method
-*/
-
-//call in main, pass in workload and workload size
+//This function initializes graphics object and runs the main game loop for the program. 
 int draw_schedule(){
 
+  //Set "custom workload" spot to a dummy empty workload
   workloads[3] = dummy;
 
-  // Request a 24-bits depth buffer when creating the window
+  //Request a 24-bits depth buffer when creating the window
   sf::ContextSettings contextSettings;
   contextSettings.depthBits = 24;
 
-   // Create the main window
-  sf::RenderWindow window(sf::VideoMode(840, 480), "SFML window with OpenGL", sf::Style::Default, contextSettings);
+   //Create the main window
+  sf::RenderWindow window(sf::VideoMode(840, 480), "Schedule Visualizer", sf::Style::Default, contextSettings);
 
-  // Make it the active window for OpenGL calls
+  //Make it the active window for OpenGL calls
   window.setActive();
 
-  // Clear the color and depth buffers
+  //Clear the color and depth buffers
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  //separate method for drawing axes and axis labels
-
+  //Booleans to direct program flow - which screen are we on, what are we doing
   bool atHome = true;
   bool atSchedule = false;
   bool atCreate = false;
   bool arrEdit = false;
   bool durEdit = false;
-  //0 = fifo, 1 = sjf, 2 = rr
+
+  //0 = FIFO, 1 = SJF, 2 = RR
   int algType = -1;
+
+  //Size of the custom workload
   int workloadSize = 0;
+
+  //To be used during custom workload creation
   int arrival[15];
   int duration[15];
+
   pqueue_arrival customWorkload;
+
+  //At program start, the first workload is pre-selected
   pqueue_arrival currWorkload = workloads[0];
 
+  //Initialize the arrays that will hold the arrival and duration values for the
+  //processes in the custom workload
   for(int i = 0; i < 15; i++){
 
     arrival[i] = -1;
     duration[i] = -1;
   }
 
+  //These two strings hold the user's numeric (string) input for the process they are
+  //creating, which will be converted to ints and inserted into the arrays above
   std::string newarrival = "";
   std::string newduration = "";
-  //char* test = "";
+  
+  //Draws text on the workload creation screen
   sf::Text process;
-  sf::Text arr;
-  sf::Text dur;
 
   sf::Font font;
   font.loadFromFile("res/arial.ttf");
 
-  /* Before running any algorithms, draw a "home screen" first */
+  //Text that displays on the home screen
   sf::Text home;
   home.setFont(font);
   home.setCharacterSize(20);
   home.setFillColor(sf::Color::White);
   home.setString("");
 
+  //Add all pre-loaded workload options
   for(int i = 0; i < 4; i++){
 
     if(!workloads[i].empty())
-      home.setString(home.getString() + "\nPress " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1));
-  
+      home.setString(home.getString() + "Press " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1) + "\n");
   }
 
-  home.setString(home.getString() + "\n\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Press 'Enter' to run the algorithm.");
+  home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, T for STCF, and R for RR. Press 'Enter' to run the algorithm.");
 
-
-  //change to "axisnums"
+  //Multipurpose text object - used on schedule screen and workload
+  //creation screen
   sf::Text text;
   text.setFont(font);
   text.setCharacterSize(12);
@@ -252,6 +266,7 @@ int draw_schedule(){
   stats.setFillColor(sf::Color::White);
   stats.setPosition(sf::Vector2f(40.f, 325.f));
 
+  //Displays the user's workload choice on the home screen
   sf::Text workchoice;
   workchoice.setFont(font);
   workchoice.setCharacterSize(14);
@@ -259,6 +274,7 @@ int draw_schedule(){
   workchoice.setPosition(sf::Vector2f(50.f, 300.f));
   workchoice.setString("");
 
+  //Displays the user's algorithm choice on the home screen
   sf::Text algchoice;
   algchoice.setFont(font);
   algchoice.setCharacterSize(14);
@@ -266,7 +282,7 @@ int draw_schedule(){
   algchoice.setPosition(sf::Vector2f(50.f, 350.f));
   algchoice.setString("");
 
-
+  //creating the line objects for the graph axes
   sf::Vertex line[] =
   {
   sf::Vertex(sf::Vector2f(40, 100)),
@@ -275,63 +291,72 @@ int draw_schedule(){
   sf::Vertex(sf::Vector2f(800, 280))
   };
 
-
-  // Finally, display the rendered frame on screen
-
-  // Start the game loop
-  // might not want to adjust for window resize
+  //Start the game loop
   while (window.isOpen())
   {
 
     //loop between drawing home screen and schedule based on events
-      // Process events
+      //Process events
       sf::Event event;
       while (window.pollEvent(event))
       {
-          // Close window: exit
+          //Close window: exit
           if (event.type == sf::Event::Closed)
               window.close();
 
-          // Escape key: exit
+          //Escape key: exit
           if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
               window.close();
 
+          //1: picks first workload
           if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num1) && atHome){
               currWorkload = workloads[0];
               workchoice.setString("Workload 1 has been chosen");
           }
 
+          //2: picks second workload
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num2) && atHome){
               currWorkload = workloads[1];
               workchoice.setString("Workload 2 has been chosen");
           }
 
+          //3: picks third workload
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num3) && atHome){
               currWorkload = workloads[2];
               workchoice.setString("Workload 3 has been chosen");
           }
 
+          //4: picks fourth workload (the custom workload)
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Num4) && atHome && !workloads[3].empty()){
               currWorkload = workloads[3];
               workchoice.setString("Workload 4 has been chosen");
           }
 
+          //F: picks FIFO
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::F) && atHome){
               algType = 0;
               algchoice.setString("FIFO chosen");
           }
 
-          //else if?
+          //S: picks SJF
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::S) && atHome){
               algType = 1;
               algchoice.setString("SJF chosen");
           }
 
+          //R: picks Round Robin
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::R) && atHome){
               algType = 2;
               algchoice.setString("RR chosen");
           }
 
+          else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::T) && atHome){
+
+            algType = 3;
+            algchoice.setString("STCF chosen");
+          }
+
+          //Use Backspace on any screen to return to home. Reset all necessary variables
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::BackSpace) && !atHome){
               sliceNum = 0;
               atHome = true;
@@ -344,33 +369,33 @@ int draw_schedule(){
               for(int i = 0; i < 4; i++){
 
                 if(!workloads[i].empty())
-                  home.setString(home.getString() + "\nPress " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1));
-              
+                  home.setString(home.getString() + "Press " + std::to_string(i + 1) + " to select Workload " + std::to_string(i + 1) + "\n");
+
               }
 
-              home.setString(home.getString() + "\n\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Then, press 'Enter'.");
+              home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, T for STCF, and R for RR. Then, press 'Enter'.");
           }
 
-          //change so that both algorithm AND "workload" is chosen before running algorithm
+          //Enter: Once algorithm and workload are chosen, press enter to run the algorithm
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Enter) && algType > -1){
               atSchedule = true;
               atHome = false;
           }
 
-          // else print "please choose an algorithm"
-
+          //C: Move to workload creation screen
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::C) && atHome){
 
             atCreate = true;
             atHome = false;
             text.setString("To add a process to your new workload, press Tab.");
             text.setPosition(sf::Vector2f(10.f, 10.f));
-            text.setCharacterSize(16);
+            text.setCharacterSize(18);
           }
 
+          //Tab: Once on the workload creation screen, press Tab to make processes
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Tab) && atCreate && !arrEdit && !durEdit){
 
-            text.setString("Type an arrival time, then press enter. Next, type a duration, and press enter again.\n\nPress Tab again to add another process to the workload.\n\nOnce you're done, press D to create the workload.\n\nUse Backspace to clear your entries if you make a mistake, and also to go back to the home screen.");
+            text.setString("Type an arrival time, then press enter. Next, type a duration, and press enter again.\n\nPress Tab to add another process to the workload.\n\nOnce you're done, press D to create the workload.\n\nUse Backspace to clear your entries if you make a mistake, and also to go back to the home screen.");
             arrEdit = true;
 
             for(int i = 0; i < 15; i++){
@@ -380,65 +405,44 @@ int draw_schedule(){
             }
 
             workloadSize = 0;
-
           }
 
-
-          // Resize event: adjust the viewport
+          //Resize event: adjust the viewport (doesn't work that well with Round Robin graphs)
           if (event.type == sf::Event::Resized)
               glViewport(0, 0, event.size.width, event.size.height);
       }
 
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      //add option listing possible workloads, map inputs to pick them
+      //At home screen
       if(atHome){
 
-        //draw all workload options from the workloads array
-
-        home.setPosition(sf::Vector2f(25.f, 10.f));
-
+        home.setPosition(sf::Vector2f(10.f, 10.f));
         window.draw(home);
         window.draw(workchoice);
         window.draw(algchoice);
       }
 
+      //At workload creation screen
       else if(atCreate){
-
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
+        //When we enter edit mode, reset text object/strings
         if(arrEdit){
-          //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
           process.setFont(font);
           process.setCharacterSize(18);
           process.setFillColor(sf::Color::White);
-          process.setPosition(sf::Vector2f(50.f, 175.f));
-          //process.move(sf::Vector2f(0.f, workloadSize*20));
+          process.setPosition(sf::Vector2f(50.f, 200.f));
           process.setString("Process " + std::to_string(workloadSize) + " -  Arrival: ");
 
           newarrival = "";
           newduration = "";
-          //arr.setFont(font);
-          //arr.setCharacterSize(16);
-          //arr.setPosition(sf::Vector2f(130.f, 100.f));
-          //arr.move(sf::Vector2f(0.f, workloadSize*20));
-          //arr.setString(newarrival);
-          //dur.setFont(font);
-          //dur.setCharacterSize(16);
-         // dur.setPosition(sf::Vector2f(200.f, 100.f));
-          //dur.move(sf::Vector2f(0.f, workloadSize*20));
-          //dur.setString(newduration);
         }
 
-        //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
-
         window.draw(text);
-        //window.draw(process);
-        //window.draw(arr);
 
+        //During the workload creation, we have to enter another loop that independently polls for events
         while((arrEdit || durEdit) && (arrival[workloadSize] < 0 || duration[workloadSize] < 0) && window.isOpen()){
 
-          //window.draw(process);
           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
           if(window.pollEvent(event)){
@@ -453,25 +457,16 @@ int draw_schedule(){
 
             else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Tab)){
 
-              //process.move(sf::Vector2f(0.f, workloadSize*20));
-              //process.setString(process.getString() + "   Arrival: " + std::to_string(atoi(newarrival.c_str())) + " Duration: " + std::to_string(atoi(newduration.c_str())) + "\nProcess " + std::to_string(workloadSize));
               process.setString(process.getString() + "\nProcess " + std::to_string(workloadSize) + " -  Arrival: ");
               newarrival = "";
-              //arr.setString(newarrival);
-              //arr.setPosition(sf::Vector2f(130.f, 100.f + 18*workloadSize));
               newduration = "";
-              //dur.setString(newduration);
-              //dur.setPosition(sf::Vector2f(200.f, 100.f + 18*workloadSize));
             }
 
-            //limit to numeric
             else if(event.type == sf::Event::TextEntered && event.text.unicode < 58 && event.text.unicode > 47){
 
-              //edit process string instead
               if(arrEdit){
+
                 newarrival += static_cast<char>(event.text.unicode);
-                //arr.setString(newarrival);
-                //process.setString("Process " + std::to_string(workloadSize) + "   Arrival: " + std::to_string(atoi(newarrival.c_str())));
                 process.setString(process.getString() + static_cast<char>(event.text.unicode));
 
               }
@@ -479,51 +474,10 @@ int draw_schedule(){
               else if(durEdit){
 
                 newduration += static_cast<char>(event.text.unicode);
-                //dur.setString(newduration);
                 process.setString(process.getString() + static_cast<char>(event.text.unicode));
               }
 
             }
-
-            
-            /*
-            //backspacing
-            else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::BackSpace)){
-
-              
-              // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-              // sf::Text process;
-              // process.setFont(font);
-              // process.setCharacterSize(16);
-              // process.setPosition(sf::Vector2f(50.f, 100.f));
-
-              // //make one long string with \n? should just make function to make the string
-              // for(int i = 0; i < workloadSize; i++){
-
-              //   process.move(sf::Vector2f(0.f, i*20));
-              //   process.setString("Process " + std::to_string(i) + "  " + std::to_string(arrival[i]) + "  " + std::to_string(duration[i]));
-              //   window.draw(process);
-              // }
-
-              
-
-              if(arrEdit && strlen(newarrival) > 0){
-                newarrival[strlen(newarrival) - 1] = '\0';
-                arr.setString(newarrival);
-                window.draw(arr);
-              }
-
-              else if(durEdit && strlen(newduration) > 0){
-                newduration[strlen(newduration) - 1] = '\0';
-                dur.setString(newduration);
-                window.draw(dur);
-              }
-
-            }
-
-            */
 
             else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Enter) && newarrival.compare("") != 0){
 
@@ -539,7 +493,6 @@ int draw_schedule(){
                 duration[workloadSize] = atoi(newduration.c_str());
                 newduration += "  DONE";
                 process.setString(process.getString() + "  DONE");
-                //dur.setString(newduration);
                 durEdit = false;
                 arrEdit = true;
                 workloadSize++;
@@ -551,7 +504,6 @@ int draw_schedule(){
 
               text.setString("New custom process added.\nPress Backspace to return to the home screen, where you can select the new process as Process 4.\nIf you choose to make another custom workload, it will replace the current one.");
               workloads[3] = custom_workload(arrival, duration, workloadSize);
-              //workload = workloads[3];
               arrEdit = false;
               durEdit = false;
             }
@@ -561,42 +513,40 @@ int draw_schedule(){
 
           window.draw(text);
           window.draw(process);
-          //window.draw(arr);
-          //window.draw(dur);
           window.display();
 
         }
-
-        //window.display();
-
       }
 
+      //At graph screen
       else if(atSchedule){
 
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        switch(algType){
+          std::string* metricStrings;
+          case 0:
+            metricStrings = metricsToText(0, fifo(currWorkload));
+    
+            metrics.setString(metricStrings[0]);
+            stats.setString(metricStrings[1]);
+            break;
 
+          case 1:
+            metricStrings = metricsToText(0, sjf(currWorkload));
+            metrics.setString(metricStrings[0]);
+            stats.setString(metricStrings[1]);
+            break;
+          
+          case 2:
+            metricStrings = metricsToText(0, rr(currWorkload));
+            metrics.setString(metricStrings[0]);
+            stats.setString(metricStrings[1]);
+            break;
 
-        //switch statement
-        if(algType == 0){
-
-          std::string* metricStrings = metricsToText(0, fifo(currWorkload));
-  
-          metrics.setString(metricStrings[0]);
-          stats.setString(metricStrings[1]);
-
-        }
-        else if(algType == 1){
-          std::string* metricStrings = metricsToText(0, sjf(currWorkload));
-  
-          metrics.setString(metricStrings[0]);
-          stats.setString(metricStrings[1]);
-
-        }
-        else if(algType == 2){
-          std::string* metricStrings = metricsToText(0, rr(currWorkload));
-  
-          metrics.setString(metricStrings[0]);
-          stats.setString(metricStrings[1]);
+          case 3:
+            metricStrings = metricsToText(0, stcf(currWorkload));
+            metrics.setString(metricStrings[0]);
+            stats.setString(metricStrings[1]);
+            break;
         }
 
         //setting and printing axis labels
@@ -647,11 +597,11 @@ int draw_schedule(){
 
         for(int i = 0; i < sliceNum; i++){
           
-          //draws slices added by the algorithm
+          //draws slices added by the chosen algorithm
           window.draw(slices[i]);
         }
 
-        //don't run algorithms again - wait for input
+        //don't run algorithm again - just draw and wait for input
         algType = -1;
       }
 
@@ -665,16 +615,11 @@ int draw_schedule(){
 
 std::list<Process> fifo(pqueue_arrival workload) {
 
-
   std::list<Process> complete;
-  //sf::RectangleShape slices[workload.size()];
 
   //ordered by arrival time
   pqueue_arrival processes = workload;
   int lastfinish = 0;
-
-  //int numprocess = 0;
-  //pqueue_arrival arrived;
 
   while(!processes.empty()){
 
@@ -689,7 +634,7 @@ std::list<Process> fifo(pqueue_arrival workload) {
 
     complete.insert(complete.end(), curr);
 
-    //for other methods, width might be lastfinish + completion?
+    //after process has run, make a time slice for it
     sf::RectangleShape newrec(sf::Vector2f((curr.duration)*sliceSize, 150.f));
 
     newrec.setFillColor(colors[curr.id]);
@@ -699,13 +644,9 @@ std::list<Process> fifo(pqueue_arrival workload) {
 
     slices[sliceNum] = newrec;
 
-    //printf("\n Rectangle origin: %f\n", newrec.getPosition().x);
-
     processes.pop();
     sliceNum++;
   }
-
-  //draw_schedule(slices, workload.size());
 
   return complete;
 }
@@ -713,11 +654,9 @@ std::list<Process> fifo(pqueue_arrival workload) {
 std::list<Process> sjf(pqueue_arrival workload) {
   std::list<Process> complete;
 
+  //One queue ordered by arrival, the other ordered by duration
   pqueue_arrival total = workload;
   pqueue_duration arrived;
-
-  //sf::RectangleShape slices[workload.size()];
-
 
   //this contains processes that have arrived
   //and orders them by duration, as needed for sjf
@@ -725,15 +664,23 @@ std::list<Process> sjf(pqueue_arrival workload) {
   total.pop();
 
   int lastfinish = 0;
-  //int numprocess = 0;
+  Process curr = arrived.top();
 
   while(!arrived.empty() || !total.empty()){
 
-    //std::cout << "running\n";
+    //if the next process arrives after the last process finished, jump ahead to it
+    if(curr.arrival > lastfinish){
+      lastfinish = arrived.top().arrival;
+    }
 
-    //at the beginning of every loop, see whether any new processes
-    //have arrived since the last process ran
-    Process curr = arrived.top();
+    //push any processes that have arrived during the last job's run or at the same time
+    //as our current process onto the arrived queue
+    while(!total.empty() && total.top().arrival <= lastfinish){
+
+      arrived.push(total.top());
+      total.pop();
+      curr = arrived.top();
+    }
 
     curr.first_run = lastfinish;
     curr.completion = lastfinish + curr.duration;
@@ -741,220 +688,193 @@ std::list<Process> sjf(pqueue_arrival workload) {
 
     complete.insert(complete.end(), curr);
 
-    //for other methods, width might be lastfinish + completion?
+    //after the process has run, make a time slice for it
     sf::RectangleShape newrec(sf::Vector2f((curr.duration)*sliceSize, 150.f));
 
     newrec.setFillColor(colors[curr.id]);
-
 
     newrec.setPosition(sf::Vector2f((float)(curr.first_run*sliceSize + 40), (float)130));
 
     slices[sliceNum] = newrec;
 
-
     arrived.pop();
-    sliceNum++;
 
-    //if the next process arrives after the last process finished
-    if(!total.empty() && total.top().arrival > lastfinish){
+    if(arrived.empty() && !total.empty()){
       arrived.push(total.top());
       total.pop();
-      lastfinish = arrived.top().arrival;
+      curr = arrived.top();
+    }      
+
+    else if(!arrived.empty()){
+
+      curr = arrived.top();
     }
 
-    else{
-      //mark any processes that have arrived during the last job's run as "arrived"
-      while(!total.empty() && total.top().arrival <= lastfinish){
-
-        arrived.push(total.top());
-        total.pop();
-
-        //std::cout << arrived.size() + "\n";
-      }
-
-    }
-
+    sliceNum++;
   }
 
-
-  //draw_schedule(slices, workload.size());
   return complete;
 }
 
 std::list<Process> stcf(pqueue_arrival workload) {
-  std::list<Process> complete;
 
   pqueue_arrival total = workload;
+  int durations[workload.size()];
+  int size = workload.size();
+
+  for(int i = 0; i < size; i++){
+
+    durations[workload.top().id] = workload.top().duration;
+    workload.pop();
+  }
+
+  std::list<Process> complete;
+
   pqueue_duration arrived;
   int clock = 0;
   int lastfinish = 0;
 
-  //this contains processes that have arrived
-  //and orders them by duration
-
-  Process firstprocess;
-  firstprocess = total.top();
-
-  firstprocess.first_run = firstprocess.arrival;
-
-  firstprocess.completion = firstprocess.duration;
-
-  clock = firstprocess.arrival;
-
-  arrived.push(firstprocess);
-
+  Process currprocess;
+  arrived.push(total.top());
   total.pop();
-
-  //Process* curr = &firstprocess;
-
+  currprocess = arrived.top();
 
   while(!arrived.empty() || !total.empty()){
 
+    if(currprocess.arrival > clock){
+
+      clock = currprocess.arrival;
+      lastfinish = clock;
+    }
+
     //at the beginning of every loop, see whether any new processes
-    //are arriving during or after the last (current) job
-    while(!total.empty() && (total.top()).arrival <= (lastfinish + arrived.top().duration)){
+    //are arriving at the moment
+    while(!total.empty() && (total.top()).arrival == clock){
 
-      Process newprocess = total.top();
+      if(total.top().duration < currprocess.duration){
 
-      Process currprocess = arrived.top();
-
-      if(newprocess.arrival > clock){
-        arrived.pop();
-
-        clock = newprocess.arrival;
-
-        if(currprocess.duration - (clock - lastfinish) <= 0){
-
-          currprocess.duration = 0;
-        }
-
-        else{
-
-          currprocess.duration = currprocess.duration - (clock - lastfinish);
-        }
-
-        arrived.push(currprocess);
-      }
-
-
-      if((newprocess.duration) < (currprocess.duration)){
-
-        //set that job's stop point as the most recent stop point
-        lastfinish = clock;
-
-        if(newprocess.first_run == -1){
-
-          //std::cout << "here";
-          newprocess.first_run = lastfinish;
-        }
-
-      }
-
-/*
-      else if(newprocess.duration == currprocess.duration && newprocess.arrival == currprocess.arrival){
+        Process clone;
+        clone.id = currprocess.id;
+        clone.first_run = currprocess.first_run;
+        clone.arrival = currprocess.arrival;
+        clone.duration = currprocess.duration;
 
         arrived.pop();
-
-        newprocess.completion = newprocess.duration;
-
-        //add job to arrived queue
-        currprocess.duration = 0;
-        int temp = currprocess.duration;
-        currprocess.duration = currprocess.completion;
-        currprocess.completion = lastfinish + temp;
-
-        lastfinish = currprocess.completion;
-
-        if(currprocess.completion > clock){
-
-          clock = currprocess.completion;
-        }
-
-        complete.insert(complete.end(), currprocess);
-        
-        newprocess.first_run = clock;
-        arrived.push(newprocess);
-
+        arrived.push(clone);
+        currprocess = clone;
       }
-
-      else{
-        
-        newprocess.completion = newprocess.duration;
-        //add job to arrived queue
-        arrived.push(newprocess);
-      }
-      */
-
-      //going to use this to hold the duration so that we can retrieve the value 
-      //after the job is done
-      newprocess.completion = newprocess.duration;
-      arrived.push(newprocess);
-
-
-      //set clock to this arrival time
+      arrived.push(total.top());
       total.pop();
     }
 
+    if(arrived.top().id != currprocess.id && (arrived.top().duration) < (currprocess.duration)){
 
-    //job is done - either no other jobs finish sooner, or the newest arrivals will come after it finishes
-    if(total.empty() || total.top().arrival > (lastfinish + arrived.top().duration) || arrived.top().duration == 0){
+      sf::RectangleShape newrec(sf::Vector2f(((clock - lastfinish)*sliceSize), 150.f));
 
-      Process currprocess = arrived.top();
-      arrived.pop();
+      newrec.setFillColor(colors[currprocess.id]);
 
-      //properly set duration and completed times
-      int temp = currprocess.duration;
-      currprocess.duration = currprocess.completion;
-      currprocess.completion = lastfinish + temp;
+      newrec.setPosition(sf::Vector2f((float)(lastfinish*sliceSize + 40), (float)130));
 
-      lastfinish = currprocess.completion;
+      slices[sliceNum] = newrec;
 
-      if(currprocess.completion > clock){
-        clock = currprocess.completion;
-      }
+      sliceNum++;
 
-      complete.insert(complete.end(), currprocess);
-      //set job with next shortest duration as the new job
+      Process clone;
+      clone.id = currprocess.id;
+      clone.first_run = currprocess.first_run;
+      clone.arrival = currprocess.arrival;
+      clone.duration = currprocess.duration;
 
-      if(!arrived.empty() && arrived.top().first_run == -1){
+      lastfinish = clock;
 
-        Process newprocess;
-        newprocess = arrived.top();
-        arrived.pop();
-        newprocess.first_run = clock;
-        arrived.push(newprocess);
-      }
+      currprocess = arrived.top();
     }
 
-    //if a job is interrupted, maybe make a copy with adjusted duration
-    //and then add it back to the "arrived" queue?
+    if(currprocess.first_run == -1){
 
-    //std::cout << arrived.size();
+      currprocess.first_run = lastfinish;
+    }
+
+    currprocess.duration = currprocess.duration - 1;
+    clock++;
+
+    if(currprocess.duration <= 0){
+
+      currprocess.completion = clock;
+
+      sf::RectangleShape newrec(sf::Vector2f(((clock - lastfinish)*sliceSize), 150.f));
+
+      newrec.setFillColor(colors[currprocess.id]);
+
+      newrec.setPosition(sf::Vector2f((float)(lastfinish*sliceSize + 40), (float)130));
+
+      slices[sliceNum] = newrec;
+
+      sliceNum++;
+
+      lastfinish = clock;
+
+      currprocess.duration = durations[currprocess.id];
+      complete.insert(complete.end(), currprocess);
+      arrived.pop();
+
+      if(!arrived.empty()){
+        currprocess = arrived.top();
+      }
+
+      else if(!total.empty()){
+
+        arrived.push(total.top());
+        total.pop();
+        currprocess = arrived.top();
+      }
+
+    }
+
+    if(total.empty() && arrived.size() == 1){
+
+      if(currprocess.first_run == -1){
+
+        currprocess.first_run = clock;
+      }
+
+      clock = clock + currprocess.duration;
+
+      sf::RectangleShape newrec(sf::Vector2f(((clock - lastfinish)*sliceSize), 150.f));
+
+      newrec.setFillColor(colors[currprocess.id]);
+
+      newrec.setPosition(sf::Vector2f((float)(lastfinish*sliceSize + 40), (float)130));
+
+      slices[sliceNum] = newrec;
+
+      sliceNum++;
+      currprocess.completion = clock;
+      currprocess.duration = durations[currprocess.id];
+
+      complete.insert(complete.end(), currprocess);
+      arrived.pop();
+    }
+
   }
 
   return complete;
 }
 
+//This algorithm runs by passing processes back and forth between
+//two queues.
 std::list<Process> rr(pqueue_arrival workload) {
   std::list<Process> complete;
 
   pqueue_arrival total = workload;
   pqueue_arrival arrived;
-  //sf::RectangleShape slices[200];
-
 
   int clock = 0;
   int lastfinish = 0;
-  //int numprocess = 0;
 
   Process current = total.top();
 
   bool totalturn = false;
-
-
-  //run through all jobs based on arrival time, keep track of arrivals
-  //and manage processes that arrive at the same time
-  //pass processes back and forth between queues?
 
   //finish current job, push onto arrived
   while(!total.empty() || !arrived.empty()){
@@ -973,8 +893,8 @@ std::list<Process> rr(pqueue_arrival workload) {
 
     clock++;
 
-    //if the current process hasn't arrived yet, skip it for now
-    //@me please fix this awful logic jfc hahahaha
+    //if the current process hasn't arrived yet, skip it for now. do this until you
+    //reach the processes that have already arrived and/or started running
     while(current.arrival > (clock - 1)){
 
         if(totalturn == false){
@@ -1078,12 +998,8 @@ std::list<Process> rr(pqueue_arrival workload) {
        sliceNum++;
     }
 
-
-
   }
-  show_metrics(complete);
 
-  //draw_schedule(slices, numprocess);
   return complete;
 }
 

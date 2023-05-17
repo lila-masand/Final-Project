@@ -8,12 +8,12 @@ TESTBIN = scheduling_test
 
 IDIR = include
 CC = g++
-CFLAGS = -I$(IDIR) -Wall -Wextra -g -pthread -I"C:\Users\Lila Masand\Documents\SFML\SFML-2.5.1-windows-gcc-7.3.0-mingw-64-bit\SFML-2.5.1\include" -DSFML_STATIC
+CFLAGS = -I$(IDIR) -Wall -Wextra -g -pthread -I"SFML-2.5.1\include" -DSFML_STATIC
 ODIR = obj
 SDIR = src
 LDIR = lib
 TDIR = test
-LIBS = -lm -L"C:\Users\Lila Masand\Documents\SFML\SFML-2.5.1-windows-gcc-7.3.0-mingw-64-bit\SFML-2.5.1\lib" -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32 -lsfml-main
+LIBS = -lm -L"SFML-2.5.1\lib" -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopengl32 -lfreetype -lwinmm -lgdi32 -lsfml-main
 XXLIBS = $(LIBS) -lstdc++ -lgtest -lgtest_main -lpthread
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
