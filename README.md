@@ -14,7 +14,8 @@ it. Using SFML with OpenGL for the graphics library, I took the algorithms that 
 written and added functionality to draw the jobs and their time slices on a graph, as well as 
 other metrics and instructions for the user. The program uses keyboard inputs only, and all 
 necessary controls are displayed on each screen. The three scheduling algorithms are FIFO 
-(First In, First Out), SJF (Shortest Job First) and RR (Round-Robin).
+(First In, First Out), SJF (Shortest Job First), STCF (Shortest to Completion First), and 
+RR (Round-Robin).
 
 After users choose from one of the three pre-loaded workloads and pick a scheduling algorithm,
 the program shows a graph with different-colored time slices that represent each process!
