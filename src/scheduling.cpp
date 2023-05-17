@@ -229,7 +229,7 @@ int draw_schedule(){
   
   }
 
-  home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Press 'Enter' to run the algorithm.");
+  home.setString(home.getString() + "\n\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Press 'Enter' to run the algorithm.");
 
 
   //change to "axisnums"
@@ -348,7 +348,7 @@ int draw_schedule(){
               
               }
 
-              home.setString(home.getString() + "\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Then, press 'Enter'.");
+              home.setString(home.getString() + "\n\nPress C to create a custom workload.\n\nSelect an algorithm to run on your workload input.\n\nType F for FIFO, S for SJF, and R for RR. Then, press 'Enter'.");
           }
 
           //change so that both algorithm AND "workload" is chosen before running algorithm
@@ -363,12 +363,14 @@ int draw_schedule(){
 
             atCreate = true;
             atHome = false;
-            text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
+            text.setString("To add a process to your new workload, press Tab.");
+            text.setPosition(sf::Vector2f(10.f, 10.f));
+            text.setCharacterSize(16);
           }
 
           else if((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Tab) && atCreate && !arrEdit && !durEdit){
 
-            text.setString("Type an arrival time, then press enter. Next, type a duration, and press enter again.\nPress Tab again to add another process to the workload.\nTo create the workload, press D. Use Backspace to exit.");
+            text.setString("Type an arrival time, then press enter. Next, type a duration, and press enter again.\n\nPress Tab again to add another process to the workload.\n\nOnce you're done, press D to create the workload.\n\nUse Backspace to clear your entries if you make a mistake, and also to go back to the home screen.");
             arrEdit = true;
 
             for(int i = 0; i < 15; i++){
@@ -394,7 +396,7 @@ int draw_schedule(){
 
         //draw all workload options from the workloads array
 
-        home.setPosition(sf::Vector2f(50.f, 25.f));
+        home.setPosition(sf::Vector2f(25.f, 10.f));
 
         window.draw(home);
         window.draw(workchoice);
@@ -408,24 +410,24 @@ int draw_schedule(){
         if(arrEdit){
           //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
           process.setFont(font);
-          process.setCharacterSize(16);
+          process.setCharacterSize(18);
           process.setFillColor(sf::Color::White);
-          process.setPosition(sf::Vector2f(50.f, 100.f));
-          process.move(sf::Vector2f(0.f, workloadSize*20));
-          process.setString("Process " + std::to_string(workloadSize) + "   Arrival: ");
+          process.setPosition(sf::Vector2f(50.f, 175.f));
+          //process.move(sf::Vector2f(0.f, workloadSize*20));
+          process.setString("Process " + std::to_string(workloadSize) + " -  Arrival: ");
 
           newarrival = "";
           newduration = "";
-          arr.setFont(font);
-          arr.setCharacterSize(16);
-          arr.setPosition(sf::Vector2f(130.f, 100.f));
+          //arr.setFont(font);
+          //arr.setCharacterSize(16);
+          //arr.setPosition(sf::Vector2f(130.f, 100.f));
           //arr.move(sf::Vector2f(0.f, workloadSize*20));
-          arr.setString(newarrival);
-          dur.setFont(font);
-          dur.setCharacterSize(16);
-          dur.setPosition(sf::Vector2f(200.f, 100.f));
+          //arr.setString(newarrival);
+          //dur.setFont(font);
+          //dur.setCharacterSize(16);
+         // dur.setPosition(sf::Vector2f(200.f, 100.f));
           //dur.move(sf::Vector2f(0.f, workloadSize*20));
-          dur.setString(newduration);
+          //dur.setString(newduration);
         }
 
         //text.setString("To add a process to your new workload, press Tab. Enter values for arrival and duration, and press enter to save each one.\nNote: total duration must be less than or equal to 150.");
@@ -453,13 +455,13 @@ int draw_schedule(){
 
               //process.move(sf::Vector2f(0.f, workloadSize*20));
               //process.setString(process.getString() + "   Arrival: " + std::to_string(atoi(newarrival.c_str())) + " Duration: " + std::to_string(atoi(newduration.c_str())) + "\nProcess " + std::to_string(workloadSize));
-              process.setString(process.getString() + "\nProcess " + std::to_string(workloadSize) + "   Arrival: ");
+              process.setString(process.getString() + "\nProcess " + std::to_string(workloadSize) + " -  Arrival: ");
               newarrival = "";
-              arr.setString(newarrival);
-              arr.setPosition(sf::Vector2f(130.f, 100.f + 18*workloadSize));
+              //arr.setString(newarrival);
+              //arr.setPosition(sf::Vector2f(130.f, 100.f + 18*workloadSize));
               newduration = "";
-              dur.setString(newduration);
-              dur.setPosition(sf::Vector2f(200.f, 100.f + 18*workloadSize));
+              //dur.setString(newduration);
+              //dur.setPosition(sf::Vector2f(200.f, 100.f + 18*workloadSize));
             }
 
             //limit to numeric
@@ -468,7 +470,7 @@ int draw_schedule(){
               //edit process string instead
               if(arrEdit){
                 newarrival += static_cast<char>(event.text.unicode);
-                arr.setString(newarrival);
+                //arr.setString(newarrival);
                 //process.setString("Process " + std::to_string(workloadSize) + "   Arrival: " + std::to_string(atoi(newarrival.c_str())));
                 process.setString(process.getString() + static_cast<char>(event.text.unicode));
 
@@ -477,7 +479,7 @@ int draw_schedule(){
               else if(durEdit){
 
                 newduration += static_cast<char>(event.text.unicode);
-                dur.setString(newduration);
+                //dur.setString(newduration);
                 process.setString(process.getString() + static_cast<char>(event.text.unicode));
               }
 
@@ -525,19 +527,19 @@ int draw_schedule(){
 
             else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::Enter) && newarrival.compare("") != 0){
 
-              if(arrEdit){
+              if(arrEdit && atoi(newarrival.c_str()) >= 0 && atoi(newarrival.c_str()) < 150){
                 arrival[workloadSize] = atoi(newarrival.c_str());
                 arrEdit = false;
                 durEdit = true;
-                process.setString(process.getString() + "   Duration: ");
+                process.setString(process.getString() + "   DONE   Duration: ");
               }
 
-              else if(durEdit){
+              else if(durEdit && atoi(newduration.c_str()) > 0 && (atoi(newarrival.c_str()) + atoi(newduration.c_str())) <= 150){
 
                 duration[workloadSize] = atoi(newduration.c_str());
                 newduration += "  DONE";
                 process.setString(process.getString() + "  DONE");
-                dur.setString(newduration);
+                //dur.setString(newduration);
                 durEdit = false;
                 arrEdit = true;
                 workloadSize++;
@@ -547,7 +549,7 @@ int draw_schedule(){
 
             else if(event.type == sf::Event::KeyPressed && (event.key.code == sf::Keyboard::D)){
 
-              text.setString("New custom process added. Press Backspace to return to the home screen.");
+              text.setString("New custom process added.\nPress Backspace to return to the home screen, where you can select the new process as Process 4.\nIf you choose to make another custom workload, it will replace the current one.");
               workloads[3] = custom_workload(arrival, duration, workloadSize);
               //workload = workloads[3];
               arrEdit = false;
@@ -677,6 +679,10 @@ std::list<Process> fifo(pqueue_arrival workload) {
   while(!processes.empty()){
 
     Process curr = processes.top();
+
+    if(curr.arrival > lastfinish)
+      lastfinish = curr.arrival;
+
     curr.first_run = lastfinish;
     curr.completion = lastfinish + curr.duration;
     lastfinish = curr.completion;
@@ -727,14 +733,6 @@ std::list<Process> sjf(pqueue_arrival workload) {
 
     //at the beginning of every loop, see whether any new processes
     //have arrived since the last process ran
-    while(!total.empty() && total.top().arrival <= lastfinish){
-
-      arrived.push(total.top());
-      total.pop();
-
-      //std::cout << arrived.size() + "\n";
-    }
-
     Process curr = arrived.top();
 
     curr.first_run = lastfinish;
@@ -756,6 +754,26 @@ std::list<Process> sjf(pqueue_arrival workload) {
 
     arrived.pop();
     sliceNum++;
+
+    //if the next process arrives after the last process finished
+    if(!total.empty() && total.top().arrival > lastfinish){
+      arrived.push(total.top());
+      total.pop();
+      lastfinish = arrived.top().arrival;
+    }
+
+    else{
+      //mark any processes that have arrived during the last job's run as "arrived"
+      while(!total.empty() && total.top().arrival <= lastfinish){
+
+        arrived.push(total.top());
+        total.pop();
+
+        //std::cout << arrived.size() + "\n";
+      }
+
+    }
+
   }
 
 
@@ -975,16 +993,25 @@ std::list<Process> rr(pqueue_arrival workload) {
 
           totalturn = true;
           current = arrived.top();
+
+          if(current.arrival > (clock))
+            clock = current.arrival;
         }
 
         else if(arrived.empty()){
 
           totalturn = false;
           current = total.top();
+
+          if(current.arrival > (clock - 1)){
+            clock = current.arrival + 1;
+            lastfinish = clock - 1;
+          }
         }
 
 
     }
+
 
     //has definitely arrived, is done with its timeslice
     if(current.arrival <= (clock - 1)){
