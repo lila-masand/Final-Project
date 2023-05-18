@@ -77,6 +77,7 @@ stored in strings. It is also added to an SFML text object and displayed. The st
 converted to integers and stored in two arrays, `int duration[]` and `int arrival[]`,  once the user 
 officially enters their input. For each array, arrival[i] and duration[i] correspond to the same 
 process.  
+  
 In order for this creation screen to work properly during the "editing" state, I made another while
 loop that polled for events and only exited if the user pressed Backspace to edit, or D to create
 their workload. Otherwise, there would have been issues with certain variables going out of scope
