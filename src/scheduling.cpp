@@ -39,9 +39,8 @@ int sliceNum = 0;
 //Used to scale time slice duration to Rectangle width
 int sliceSize = 5;
 
-//Colors to use when assigning each proccess a color. Unfortunately, SFML does not have
-//many built-in colors, so we can only have 6 unique processes per workload
-sf::Color colors[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan, sf::Color(242, 170, 24, 1)};
+//Colors to use when assigning each proccess a color.
+sf::Color colors[] = {sf::Color::Red, sf::Color::Blue, sf::Color::Green, sf::Color::Yellow, sf::Color::Magenta, sf::Color::Cyan, sf::Color(242, 170, 24), sf::Color(179, 66, 245)};
 
 std::string filenames[3] = {"workload_01.txt", "workload_02.txt", "workload_03.txt"};
 
