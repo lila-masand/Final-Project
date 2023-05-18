@@ -53,7 +53,8 @@ you would like - the arrival time is first, and then duration of the process (0 
 arrival of 0 and a duration of 10).
 
 ## Documentation
-Further documentation is present in the source files.
+Further documentation is present in the source files - there were too many changes and additions
+to go through fully here.
 
 `void read_workloads`  
 
