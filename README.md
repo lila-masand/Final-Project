@@ -13,7 +13,7 @@ Our class used C++, and I chose to continue using this for my project to get mor
 it. Using SFML with OpenGL for the graphics library, I took the algorithms that I had already 
 written and added functionality to draw the jobs and their time slices on a graph, as well as 
 other metrics and instructions for the user. The program uses keyboard inputs only, and all 
-necessary controls are displayed on each screen. The three scheduling algorithms are FIFO 
+necessary controls are displayed on each screen. The four scheduling algorithms are FIFO 
 (First In, First Out), SJF (Shortest Job First), STCF (Shortest to Completion First), and 
 RR (Round-Robin).
 
@@ -35,7 +35,8 @@ polishing and improvement, and I may update the performance or UI in the future.
 ## Usage
 Download the provided files and run `make` in your C++ environment, after which `./scheduling_app.exe`
 will run the program. There are no arguments required. The workload text files can be altered however
-you would like - the arrival time is first, and then duration.
+you would like - the arrival time is first, and then duration of the process (0 10 = a process with an
+arrival of 0 and a duration of 10).
 
 ## Documentation
 Further documentation is present in the source files.
@@ -48,7 +49,7 @@ these workloads, and then leaves an empty slot for the user's custom workload.
 
 `std::string* metricsToText`  
 
-Here, I used the old `show_processes` method as a base and wrote this new one to return two
+Here, I used the old `show_processes` and `show_metrics` methods as a base and wrote this new one to return two
 strings showing the overall metrics of the algorithm run. It returns each processes' attribute
 values at the end of the algorithm, as well as the stats for average turnaround and average
 response time. These strings are later assigned to text objects and drawn in the game loop.
@@ -75,7 +76,11 @@ numeric input for the arrival and duration of the new processes is read characte
 stored in strings. It is also added to an SFML text object and displayed. The strings are later
 converted to integers and stored in two arrays, `int duration[]` and `int arrival[]`,  once the user 
 officially enters their input. For each array, arrival[i] and duration[i] correspond to the same 
-process.
+process.  
+In order for this creation screen to work properly during the "editing" state, I made another while
+loop that polled for events and only exited if the user pressed Backspace to edit, or D to create
+their workload. Otherwise, there would have been issues with certain variables going out of scope
+when the overarching while loop was exited and re-entered. 
 
 `pqueue_arrival custom_workload`  
 
