@@ -64,17 +64,36 @@ algorithm, switching to the "workload maker" screen, etc. The flow of the game l
 by boolean variables that denote which program screen is active and needs to be drawn.
 
 To display the workload schedule, each algorithm calculates the size of the time slice and adds a
-RectangleShape SFML object to a global array.
+RectangleShape SFML object to a global array. On the screen that actually draws the schedule on a
+graph, this array is accessed independently of which algorithm ran, and the time slices are drawn
+in their assigned color, position, and size. A legend to tell the processes apart is also included
+for each algorithm, especially since the colors assigned to the processes may change based on which
+processes ended up running first.
 
 The workload creation screen was the most complicated one to figure out. As the user types, their
 numeric input for the arrival and duration of the new processes is read character by character and
-stored in strings. It is also added to an SFML text object and displayed.
+stored in strings. It is also added to an SFML text object and displayed. The strings are later
+converted to integers and stored in two arrays, `int duration[]` and `int arrival[]`,  once the user 
+officially enters their input. For each array, arrival[i] and duration[i] correspond to the same 
+process.
+
+`pqueue_arrival custom_workload`  
+
+This method uses the arrival and duration arrays to create the user's custom input in a similar way
+to the `read_workloads` method. It reads the arrival and duration from each array at the same index
+and creates the process, adding it to the pqueue. It copies this queue into the fourth spot in the
+global workloads array, where there are already 3 pre-loaded workloads. If the user chooses to make
+another custom workload, it will replace the first one.
 
 `int fifo`, `int sctf`, `int sjf`, `int rr`  
 
 As previously mentioned, each algorithm adds a RectangleShape to a global array as it runs. This means
 that for Round-Robin and Shortest to Completion First, these time slices had to be calculated either
-based on the timeslice size for RR (1 time unit) or based on how long the process ran before it was 
-stopped and replaced in STCF. 
+based on the timeslice size for RR (1 time unit) or based on how long a process ran before it was 
+stopped and replaced in STCF. Both of these algorithms kept a clock and a variable that tracked the
+last time a process finished running, which in most cases was also the time that the next process
+started running. These variables were used to figure out the width of each RectangleShape.  
+An 'id' variable was added to the Process struct in order to allow each algorithm to properly assign
+the processes a specific color that applied to each of their timeslices. 
 
 Here is my presentation video: https://www.youtube.com/watch?v=GioZw47CHiM
