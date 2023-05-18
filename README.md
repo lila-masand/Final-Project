@@ -6,7 +6,7 @@ Lila Masand, CS377 Operating Systems, 5/17/23
 Hello! This repo holds my final project for CS377 Operating Systems at UMass. For my project, 
 I chose to alter one of the projects that we had completed earlier in the course (Project 3)
 where we had implemented different process scheduling algorithms. One of the proposed options
-for a final project was to make a visual representation of memory storage, so I chose to apply
+for a final project was to make a visual representation of memory management, so I chose to apply
 that concept to scheduling instead. I love making interactive programs/games, so I decided to 
 make a program that would help CS students visualize how schedulers run jobs using the algorithms 
 we learned about. 
