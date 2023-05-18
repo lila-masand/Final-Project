@@ -32,6 +32,14 @@ Scheduling is a fundamental part of running an operating system - all OSes need 
 I hope that this visual demonstration is satisfying and helpful. There is LOTS of room for
 polishing and improvement, and I may update the performance or UI in the future.
 
+## Libraries
+As mentioned, this project uses the SFML with OpenGL graphics library. The include files are in the repo,
+and the make file is configured to work with them, along with VSCode configuration files if that is your
+chosen IDE. SFML is an extremely simple graphics library so I would only recommend it for small
+projects in general (and for more graphic-based demonstrations more than a program for which you
+need polished UI elements). That being said, it's very easy to use aside from a conflict I found with the
+std namespace.
+
 ## Usage
 Download the provided files and run `make` in your C++ environment, after which `./scheduling_app.exe`
 will run the program. There are no arguments required. The workload text files can be altered however
