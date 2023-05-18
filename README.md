@@ -32,4 +32,32 @@ Scheduling is a fundamental part of running an operating system - all OSes need 
 I hope that this visual demonstration is satisfying and helpful. There is LOTS of room for
 polishing and improvement, and I may update the performance or UI in the future.
 
+## Usage
+Download the provided files and run `make` in your C++ environment, after which `./scheduling_app.exe`
+will run the program. There are no arguments required.
+
+## Documentation
+Further documentation is present in the source files.
+
+`void read_workloads`
+This method used to be `read_workload` and was altered to load all 3 workload text files at the
+start of the program. It creates the workloads and then copies them into an array that holds
+these workloads, and then leaves an empty slot for the user's custom workload.
+
+`std::string* metricsToText`
+Here, I used the old `show_processes` method as a base and wrote this new one to return two
+strings showing the overall metrics of the algorithm run. It returns each processes' attribute
+values at the end of the algorithm, as well as the stats for average turnaround and average
+response time. These strings are later assigned to text objects and drawn in the game loop.
+
+`void draw_schedule`
+This method holds the main game loop that runs the program. SFML graphics objects such as text,
+shapes, and the window itself are declared before entering the loop, and then the game loop runs
+as long as the window is open. There is a second loop that runs as long as there are events in the
+event queue - SFML provides both mouse and key listeners - and any valid input is mapped to an
+outcome such as picking a workload, picking an algorithm, submitting the input and running the
+algorithm, switching to the "workload maker" screen, etc. The flow of the game loop is controlled
+by boolean variables that denote which program screen is active and needs to be drawn.
+
+
 Here is my presentation video: https://www.youtube.com/watch?v=GioZw47CHiM
