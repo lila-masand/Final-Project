@@ -34,23 +34,27 @@ polishing and improvement, and I may update the performance or UI in the future.
 
 ## Usage
 Download the provided files and run `make` in your C++ environment, after which `./scheduling_app.exe`
-will run the program. There are no arguments required.
+will run the program. There are no arguments required. The workload text files can be altered however
+you would like - the arrival time is first, and then duration.
 
 ## Documentation
 Further documentation is present in the source files.
 
-`void read_workloads`
+`void read_workloads`  
+
 This method used to be `read_workload` and was altered to load all 3 workload text files at the
 start of the program. It creates the workloads and then copies them into an array that holds
 these workloads, and then leaves an empty slot for the user's custom workload.
 
-`std::string* metricsToText`
+`std::string* metricsToText`  
+
 Here, I used the old `show_processes` method as a base and wrote this new one to return two
 strings showing the overall metrics of the algorithm run. It returns each processes' attribute
 values at the end of the algorithm, as well as the stats for average turnaround and average
 response time. These strings are later assigned to text objects and drawn in the game loop.
 
-`void draw_schedule`
+`void draw_schedule`  
+
 This method holds the main game loop that runs the program. SFML graphics objects such as text,
 shapes, and the window itself are declared before entering the loop, and then the game loop runs
 as long as the window is open. There is a second loop that runs as long as there are events in the
@@ -59,5 +63,18 @@ outcome such as picking a workload, picking an algorithm, submitting the input a
 algorithm, switching to the "workload maker" screen, etc. The flow of the game loop is controlled
 by boolean variables that denote which program screen is active and needs to be drawn.
 
+To display the workload schedule, each algorithm calculates the size of the time slice and adds a
+RectangleShape SFML object to a global array.
+
+The workload creation screen was the most complicated one to figure out. As the user types, their
+numeric input for the arrival and duration of the new processes is read character by character and
+stored in strings. It is also added to an SFML text object and displayed.
+
+`int fifo`, `int sctf`, `int sjf`, `int rr`  
+
+As previously mentioned, each algorithm adds a RectangleShape to a global array as it runs. This means
+that for Round-Robin and Shortest to Completion First, these time slices had to be calculated either
+based on the timeslice size for RR (1 time unit) or based on how long the process ran before it was 
+stopped and replaced in STCF. 
 
 Here is my presentation video: https://www.youtube.com/watch?v=GioZw47CHiM
