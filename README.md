@@ -5,9 +5,21 @@ Lila Masand, CS377 Operating Systems, 5/17/23
 
 Hello! This repo holds my final project for CS377 Operating Systems at UMass. For my project, 
 I chose to alter one of the projects that we had completed earlier in the course (Project 3)
-where we had implemented different process scheduling algorithms. I love making interactive
-programs/games, so I decided to make a program that would help CS students visualize how
-schedulers run jobs using the algorithms we learned about. 
+where we had implemented different process scheduling algorithms. One of the proposed options
+for a final project was to make a visual representation of memory storage, so I chose to apply
+that concept to scheduling instead. I love making interactive programs/games, so I decided to 
+make a program that would help CS students visualize how schedulers run jobs using the algorithms 
+we learned about. 
+
+My hope is that this project will help students learn about the algorithms and understand how
+processes are chosen and run as they arrive. It helped me a lot to look at visual representations
+of time slices when I was learning about scheduling, and even now I have a lot of fun making my
+own workloads, experimenting with different edge cases and seeing how they run in my program.
+Scheduling is a fundamental part of running an operating system - all OSes need to do it! - so
+I hope that this visual demonstration is satisfying and helpful. There is LOTS of room for
+polishing and improvement, and I may update the performance or UI in the future.
+
+## Design
 
 Our class used C++, and I chose to continue using this for my project to get more familiar with
 it. Using SFML with OpenGL for the graphics library, I took the algorithms that I had already 
@@ -22,15 +34,9 @@ the program shows a graph with different-colored time slices that represent each
 Metrics for the processes about the time of arrival, time of first run, duration, and completion
 time will also be displayed, as well as the average turnaround time and response time for the
 jobs. Additionally, the user can create their own custom workload to use by creating processes
-and assigning them an arrival time and duration.
-
-My hope is that this project will help students learn about the algorithms and understand how
-processes are chosen and run as they arrive. It helped me a lot to look at visual representations
-of time slices when I was learning about scheduling, and even now I have a lot of fun making my
-own workloads, experimenting with different edge cases and seeing how they run in my program.
-Scheduling is a fundamental part of running an operating system - all OSes need to do it! - so
-I hope that this visual demonstration is satisfying and helpful. There is LOTS of room for
-polishing and improvement, and I may update the performance or UI in the future.
+and assigning them an arrival time and duration. This last part was one of the most important
+aspects of the project overall, since it allows the user to actually engage with the concepts
+in a deeper, more curious way.
 
 ## Libraries
 As mentioned, this project uses the SFML with OpenGL graphics library. The include files are in the repo,
@@ -101,12 +107,13 @@ another custom workload, it will replace the first one.
 
 `int fifo`, `int sctf`, `int sjf`, `int rr`  
 
-As previously mentioned, each algorithm adds a RectangleShape to a global array as it runs. This means
+As previously mentioned, each algorithm adds RectangleShapes to a global array as it runs. This means
 that for Round-Robin and Shortest to Completion First, these time slices had to be calculated either
 based on the timeslice size for RR (1 time unit) or based on how long a process ran before it was 
 stopped and replaced in STCF. Both of these algorithms kept a clock and a variable that tracked the
 last time a process finished running, which in most cases was also the time that the next process
 started running. These variables were used to figure out the width of each RectangleShape.  
+  
 An 'id' variable was added to the Process struct in order to allow each algorithm to properly assign
 the processes a specific color that applied to each of their timeslices. 
 
