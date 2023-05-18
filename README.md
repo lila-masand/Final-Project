@@ -32,4 +32,4 @@ Scheduling is a fundamental part of running an operating system - all OSes need 
 I hope that this visual demonstration is satisfying and helpful. There is LOTS of room for
 polishing and improvement, and I may update the performance or UI in the future.
 
-Here is my presentation video:
+Here is my presentation video: (https://www.youtube.com/watch?v=GioZw47CHiM)
